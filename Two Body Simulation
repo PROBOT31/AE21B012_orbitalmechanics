@@ -39,8 +39,8 @@ function two_body_simulation()
     plot((x1+x2)/2,(y1+y2)/2,'g','LineWidth',1);%Center of Mass Trajectory
     xlabel('X Position (m)');
     ylabel('Y Position (m)');
-    title('Trajectory of Earth and Moon');
-    legend('Earth', 'Moon','COM');
+    title('Trajectory of 1 and 2');
+    legend('1', '2','COM');
     grid on;
 end
 
