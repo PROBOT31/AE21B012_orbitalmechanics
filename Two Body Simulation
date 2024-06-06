@@ -1,0 +1,68 @@
+function two_body_simulation()
+
+    % First we define the constants
+    G = 6.67430e-11; % Gravitational constant (m^3/kg/s^2)
+    m1 = 2e24; % Mass of body 1
+    m2 = 2e24; % Mass of body 2
+    r_initial = 384400e3; % Initial separation (m)(Assumption)
+    v_initial = 1e2; % Initial relative velocity (m/s)(Assumption)
+
+    % Initial positions (m)
+    x1_0 = 0; y1_0 = 0; % Body 1 is chosen as origin
+    x2_0 = r_initial; y2_0 = 0; % Body 2 initially placed to the right of body 1
+
+    % Initial velocities (m/s)
+    vx1_0 = 0; vy1_0 = 0; % Body 1 stationary
+    p=sqrt(0.5);
+    vx2_0 = p*v_initial; vy2_0 =p* v_initial; % Body 2 initially along 45 degree axis
+
+    % Combine initial state into a vector
+    initial_state = [x1_0; y1_0; x2_0; y2_0; vx1_0; vy1_0; vx2_0; vy2_0];
+
+    % Time span for simulation
+    t_span = [0, 2.333e+64]; % Duration in seconds
+
+ 
+    % Solve the differential equations using ode45
+    [t, state] = ode45(@(t, state) two_body_equations(t, state,G,m1,m2), [0,2.333e+6], initial_state);
+    % Extract positions from the state matrix
+    x1 = state(:, 1);
+    y1 = state(:, 2);
+    x2 = state(:, 3);
+    y2 = state(:, 4);
+  
+    % Plot the results
+    figure;
+    plot(x1, y1, 'b', 'LineWidth', 2); % Body 1 trajectory
+    hold on;
+    plot(x2, y2, 'r', 'LineWidth', 2); % Body 2 trajectory
+    plot((x1+x2)/2,(y1+y2)/2,'g','LineWidth',1);%Center of Mass Trajectory
+    xlabel('X Position (m)');
+    ylabel('Y Position (m)');
+    title('Trajectory of Earth and Moon');
+    legend('Earth', 'Moon','COM');
+    grid on;
+end
+
+function state_derivatives = two_body_equations(~, state, G, m1, m2)
+    x1 = state(1);
+    y1 = state(2);
+    x2 = state(3);
+    y2 = state(4);
+    vx1 = state(5);
+    vy1 = state(6);
+    vx2 = state(7);
+    vy2 = state(8);
+
+    % Distance between the two bodies
+    r = sqrt((x2 - x1)^2 + (y2 - y1)^2);
+
+    % Accelerations
+    ax1 = G * m2 * (x2 - x1) / r^3;
+    ay1 = G * m2 * (y2 - y1) / r^3;
+    ax2 = G * m1 * (x1 - x2) / r^3;
+    ay2 = G * m1 * (y1 - y2) / r^3;
+
+    % Returning the derivatives of the state vector
+    state_derivatives = [vx1; vy1; vx2; vy2; ax1; ay1; ax2; ay2];
+end
