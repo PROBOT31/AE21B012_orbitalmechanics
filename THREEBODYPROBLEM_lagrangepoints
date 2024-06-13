@@ -1,0 +1,55 @@
+
+%This code is an attempt to find lagrange points for earth moon system
+G = 6.67430e-11;  % Gravitational constant, m^3 kg^-1 s^-2
+M1 = 5.972e24;    % Mass of Earth(kg)
+M2 = 7.348e22;    % Mass of Moon(kg)
+R = 3844e5;     % Distance between Earth and Moon(m)
+pi = M2 / (M1 + M2);
+
+% Defining the equations for the Lagrange points
+%Case 1 for points along the line
+%Case 2 for points on vertice of equilateral triangle
+
+
+% Equations for L1, L2, and L3 (along the line connecting Earth and Moon)
+lagrange_eq1 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
+lagrange_eq2 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
+lagrange_eq3 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
+
+% Solve for L1, L2, and L3
+L1 = fsolve(lagrange_eq1, 0.5);
+L2 = fsolve(lagrange_eq2, 1.5);
+L3 = fsolve(lagrange_eq3, -1);
+
+% Equations for L4 and L5 (equilateral points)
+lagrange_eq4_5 = @(xy) [(1 - pi) * (xy(1) + pi) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
+                        pi * (xy(1) - 1 + pi) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(1);
+                        (1 - pi) * xy(2) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
+                        pi * xy(2) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(2)];
+
+% Initial guesses for L4 and L5
+L4_guess = [0.5, sqrt(3)/2];
+L5_guess = [0.5, -sqrt(3)/2];
+
+% Solving L4 and L5
+L4 = fsolve(lagrange_eq4_5, L4_guess);
+L5 = fsolve(lagrange_eq4_5, L5_guess);
+
+% Convert to metres
+L1 = L1 * R;
+L2 = L2 * R;
+L3 = L3 * R;
+L4 = L4 * R;
+L5 = L5 * R;
+
+% Display the results
+disp('Lagrange Points (in meters):');
+%Since 1,2,3 lie on the line joining the 2,we describe only using x axis
+%coordinate
+%Throughout this we have operated in the plane containing both the earth
+%and the moon
+fprintf('L1: (%.2f, 0.00,0.00)\n', L1);
+fprintf('L2: (%.2f, 0.00,0.00)\n', L2);
+fprintf('L3: (%.2f, 0.00,0.00)\n', L3);
+fprintf('L4: (%.2f, %.2f,0.00)\n', L4(1), L4(2));
+fprintf('L5: (%.2f, %.2f,0.00)\n', L5(1), L5(2)); 
