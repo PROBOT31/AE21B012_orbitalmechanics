@@ -75,4 +75,11 @@ for i = 1:size(L_points, 1)
     J_eval = double(subs(J, {x, y, z}, {L_point(1), L_point(2), L_point(3)}));
     fprintf('Jacobian at L%d:\n', i);
     disp(J_eval);
+    
+    % Compute eigenvalues and eigenvectors
+    [V, D] = eig(J_eval);
+    fprintf('Eigenvalues at L%d:\n', i);
+    disp(diag(D));
+    fprintf('Eigenvectors at L%d:\n', i);
+    disp(V);
 end
