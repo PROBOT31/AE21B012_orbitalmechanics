@@ -1,85 +1,83 @@
-G = 6.67430e-11;  % Gravitational constant, m^3 kg^-1 s^-2
-M1 = 5.972e24;    % Mass of Earth (kg)
-M2 = 7.348e22;    % Mass of Moon (kg)
-R = 3844e5;       % Distance between Earth and Moon (m)
-pi = M2 / (M1 + M2);
+function lagrange_points_and_jacobian
+    % Constants
+    G = 6.67430e-11;  % Gravitational constant, m^3 kg^-1 s^-2
+    M1 = 5.972e24;    % Mass of Earth (kg)
+    M2 = 7.348e22;    % Mass of Moon (kg)
+    R = 3844e5;       % Distance between Earth and Moon (m)
+    pi = M2 / (M1 + M2);
 
-% Defining the equations for the Lagrange points
-%Case 1 for points along the line
-%Case 2 for points on vertice of equilateral triangle
+    % Defining the equations for the Lagrange points
+    % Case 1 for points along the line
+    % Case 2 for points on vertice of equilateral triangle
 
-%CASE-1
-lagrange_eq1 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
-lagrange_eq2 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
-lagrange_eq3 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
+    % CASE-1
+    lagrange_eq1 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
+    lagrange_eq2 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
+    lagrange_eq3 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
 
-% Solve for L1, L2, and L3
-L1 = fsolve(lagrange_eq1, 0.5);
-L2 = fsolve(lagrange_eq2, 1.5);
-L3 = fsolve(lagrange_eq3, -1);
+    % Solve for L1, L2, and L3
+    L1 = fsolve(lagrange_eq1, 0.5);
+    L2 = fsolve(lagrange_eq2, 1.5);
+    L3 = fsolve(lagrange_eq3, -1);
 
-% Equations for L4 and L5 (equilateral points)
-lagrange_eq4_5 = @(xy) [(1 - pi) * (xy(1) + pi) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
-                        pi * (xy(1) - 1 + pi) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(1);
-                        (1 - pi) * xy(2) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
-                        pi * xy(2) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(2)];
+    % Equations for L4 and L5 (equilateral points)
+    lagrange_eq4_5 = @(xy) [(1 - pi) * (xy(1) + pi) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
+                            pi * (xy(1) - 1 + pi) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(1);
+                            (1 - pi) * xy(2) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
+                            pi * xy(2) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(2)];
 
-% Initial guesses for L4 and L5
-L4_guess = [0.5, sqrt(3)/2];
-L5_guess = [0.5, -sqrt(3)/2];
+    % Initial guesses for L4 and L5
+    L4_guess = [0.5, sqrt(3)/2];
+    L5_guess = [0.5, -sqrt(3)/2];
 
-% Solving L4 and L5
-L4 = fsolve(lagrange_eq4_5, L4_guess);
-L5 = fsolve(lagrange_eq4_5, L5_guess);
+    % Solving L4 and L5
+    L4 = fsolve(lagrange_eq4_5, L4_guess);
+    L5 = fsolve(lagrange_eq4_5, L5_guess);
 
-% Convert to metres
-L1 = L1 * R;
-L2 = L2 * R;
-L3 = L3 * R;
-L4 = L4 * R;
-L5 = L5 * R;
+    % Convert to meters
+    L1 = L1 * R;
+    L2 = L2 * R;
+    L3 = L3 * R;
+    L4 = L4 * R;
+    L5 = L5 * R;
 
-% Display the results
-disp('Lagrange Points (in meters):');
-%Since 1,2,3 lie on the line joining the 2,we describe only using x axis
-%coordinate
-%Throughout this we have operated in the plane containing both the earth
-%and the moon
-% disp('Lagrange Points (in meters):');
-fprintf('L1: (%.2f, 0.00, 0.00)\n', L1);
-fprintf('L2: (%.2f, 0.00, 0.00)\n', L2);
-fprintf('L3: (%.2f, 0.00, 0.00)\n', L3);
-fprintf('L4: (%.2f, %.2f, 0.00)\n', L4(1), L4(2));
-fprintf('L5: (%.2f, %.2f, 0.00)\n', L5(1), L5(2));
+    % Display the results
+    disp('Lagrange Points (in meters):');
+    fprintf('L1: (%.2f, 0.00, 0.00)\n', L1);
+    fprintf('L2: (%.2f, 0.00, 0.00)\n', L2);
+    fprintf('L3: (%.2f, 0.00, 0.00)\n', L3);
+    fprintf('L4: (%.2f, %.2f, 0.00)\n', L4(1), L4(2));
+    fprintf('L5: (%.2f, %.2f, 0.00)\n', L5(1), L5(2));
 
-% Define the system of equations for the 3-body problem
-syms x y z
-% Reference Coordinates 
-x1 = 0; y1 = 0; z1 = 0; % Earth
-x2 = R; y2 = 0; z2 = 0; % Moon
+    % Define the system of equations for the 3-body problem
+    syms x y z
+    % Reference Coordinates 
+    x1 = 0; y1 = 0; z1 = 0; % Earth
+    x2 = R; y2 = 0; z2 = 0; % Moon
 
-% Differential equations
-ddx = (G * M1 * (x - x1) / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * (x - x2) / ((x - x2)^2 + y^2 + z^2)^(3/2));
-ddy = (G * M1 * y / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * y / ((x - x2)^2 + y^2 + z^2)^(3/2));
-ddz = (G * M1 * z / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * z / ((x - x2)^2 + y^2 + z^2)^(3/2));
+    % Differential equations
+    ddx = (G * M1 * (x - x1) / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * (x - x2) / ((x - x2)^2 + y^2 + z^2)^(3/2));
+    ddy = (G * M1 * y / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * y / ((x - x2)^2 + y^2 + z^2)^(3/2));
+    ddz = (G * M1 * z / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * z / ((x - x2)^2 + y^2 + z^2)^(3/2));
 
-% Jacobian matrix
-J = jacobian([ddx, ddy, ddz], [x, y, z]);
+    % Jacobian matrix
+    J = jacobian([ddx, ddy, ddz], [x, y, z]);
 
-% Equilibrium points
-L_points = [L1, 0, 0; L2, 0, 0; L3, 0, 0; L4(1), L4(2), 0; L5(1), L5(2), 0];
+    % Equilibrium points
+    L_points = [L1, 0, 0; L2, 0, 0; L3, 0, 0; L4(1), L4(2), 0; L5(1), L5(2), 0];
 
-% Inorder to evaluate the Jacobian at each equilibrium point
-for i = 1:size(L_points, 1)
-    L_point = L_points(i, :);
-    J_eval = double(subs(J, {x, y, z}, {L_point(1), L_point(2), L_point(3)}));
-    fprintf('Jacobian at L%d:\n', i);
-    disp(J_eval);
-    
-    % Compute eigenvalues and eigenvectors
-    [V, D] = eig(J_eval);
-    fprintf('Eigenvalues at L%d:\n', i);
-    disp(diag(D));
-    fprintf('Eigenvectors at L%d:\n', i);
-    disp(V);
+    % Evaluate the Jacobian at each equilibrium point
+    for i = 1:size(L_points, 1)
+        L_point = L_points(i, :);
+        J_eval = double(subs(J, {x, y, z}, {L_point(1), L_point(2), L_point(3)}));
+        fprintf('Jacobian at L%d:\n', i);
+        disp(J_eval);
+        
+        % Compute eigenvalues and eigenvectors
+        [V, D] = eig(J_eval);
+        fprintf('Eigenvalues at L%d:\n', i);
+        disp(diag(D));
+        fprintf('Eigenvectors at L%d:\n', i);
+        disp(V);
+    end
 end
