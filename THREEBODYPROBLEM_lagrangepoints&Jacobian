@@ -4,16 +4,20 @@ function lagrange_points_and_jacobian()
     M1 = 5.972e24;    % Mass of Earth (kg)
     M2 = 7.348e22;    % Mass of Moon (kg)
     R = 3844e5;       % Distance between Earth and Moon (m)
-    pi = M2 / (M1 + M2);
+    
+    % Standard gravitational parameters
+    mu1 = G * M1;
+    mu2 = G * M2;
+    mu = mu2 / (mu1 + mu2);
 
     % Defining the equations for the Lagrange points
     % Case 1 for points along the line
     % Case 2 for points on vertices of equilateral triangle
 
     % CASE-1
-    lagrange_eq1 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
-    lagrange_eq2 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
-    lagrange_eq3 = @(x) (1 - pi) * (x + pi) ./ abs(x + pi).^3 + pi * (x - 1 + pi) ./ abs(x - 1 + pi).^3 - x;
+    lagrange_eq1 = @(x) (1 - mu) * (x + mu) ./ abs(x + mu).^3 + mu * (x - 1 + mu) ./ abs(x - 1 + mu).^3 - x;
+    lagrange_eq2 = @(x) (1 - mu) * (x + mu) ./ abs(x + mu).^3 + mu * (x - 1 + mu) ./ abs(x - 1 + mu).^3 - x;
+    lagrange_eq3 = @(x) (1 - mu) * (x + mu) ./ abs(x + mu).^3 + mu * (x - 1 + mu) ./ abs(x - 1 + mu).^3 - x;
 
     % Solve for L1, L2, and L3
     L1 = fsolve(lagrange_eq1, 0.5);
@@ -21,10 +25,10 @@ function lagrange_points_and_jacobian()
     L3 = fsolve(lagrange_eq3, -1);
 
     % Equations for L4 and L5 (equilateral points)
-    lagrange_eq4_5 = @(xy) [(1 - pi) * (xy(1) + pi) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
-                            pi * (xy(1) - 1 + pi) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(1);
-                            (1 - pi) * xy(2) ./ sqrt((xy(1) + pi).^2 + xy(2).^2).^3 + ...
-                            pi * xy(2) ./ sqrt((xy(1) - 1 + pi).^2 + xy(2).^2).^3 - xy(2)];
+    lagrange_eq4_5 = @(xy) [(1 - mu) * (xy(1) + mu) ./ sqrt((xy(1) + mu).^2 + xy(2).^2).^3 + ...
+                            mu * (xy(1) - 1 + mu) ./ sqrt((xy(1) - 1 + mu).^2 + xy(2).^2).^3 - xy(1);
+                            (1 - mu) * xy(2) ./ sqrt((xy(1) + mu).^2 + xy(2).^2).^3 + ...
+                            mu * xy(2) ./ sqrt((xy(1) - 1 + mu).^2 + xy(2).^2).^3 - xy(2)];
 
     % Initial guesses for L4 and L5
     L4_guess = [0.5, sqrt(3)/2];
@@ -34,7 +38,6 @@ function lagrange_points_and_jacobian()
     L4 = fsolve(lagrange_eq4_5, L4_guess);
     L5 = fsolve(lagrange_eq4_5, L5_guess);
 
-   
     % Display the results
     disp('Lagrange Points (in standardized coordinates):');
     fprintf('L1: (%.6f, 0.000, 0.000)\n', L1);
@@ -50,9 +53,9 @@ function lagrange_points_and_jacobian()
     x2 = 1; y2 = 0; z2 = 0; % Moon (normalized distance R to 1)
 
     % Differential equations
-    ddx = (G * M1 * (x - x1) / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * (x - x2) / ((x - x2)^2 + y^2 + z^2)^(3/2));
-    ddy = (G * M1 * y / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * y / ((x - x2)^2 + y^2 + z^2)^(3/2));
-    ddz = (G * M1 * z / ((x - x1)^2 + y^2 + z^2)^(3/2) + G * M2 * z / ((x - x2)^2 + y^2 + z^2)^(3/2));
+    ddx = (mu1 * (x - x1) / ((x - x1)^2 + y^2 + z^2)^(3/2) + mu2 * (x - x2) / ((x - x2)^2 + y^2 + z^2)^(3/2));
+    ddy = (mu1 * y / ((x - x1)^2 + y^2 + z^2)^(3/2) + mu2 * y / ((x - x2)^2 + y^2 + z^2)^(3/2));
+    ddz = (mu1 * z / ((x - x1)^2 + y^2 + z^2)^(3/2) + mu2 * z / ((x - x2)^2 + y^2 + z^2)^(3/2));
 
     % Jacobian matrix
     J = jacobian([ddx, ddy, ddz], [x, y, z]);
