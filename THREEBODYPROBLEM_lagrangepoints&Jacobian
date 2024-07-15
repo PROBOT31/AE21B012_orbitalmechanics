@@ -47,18 +47,27 @@ function lagrange_points_and_jacobian()
     fprintf('L5: (%.6f, %.6f, 0.000)\n', L5(1), L5(2));
 
     % Define the system of equations for the 3-body problem
-    syms x y z
+    syms x y z vx vy vz
     % Reference Coordinates
-    x1 = 0; y1 = 0; z1 = 0; % Earth
-    x2 = 1; y2 = 0; z2 = 0; % Moon (normalized distance R to 1)
+    x1 = -mu; y1 = 0; z1 = 0; % Earth
+    x2 = 1-mu; y2 = 0; z2 = 0; % Moon (normalized distance R to 1)
 
-    % Differential equations
-    ddx = (mu1 * (x - x1) / ((x - x1)^2 + y^2 + z^2)^(3/2) + mu2 * (x - x2) / ((x - x2)^2 + y^2 + z^2)^(3/2));
-    ddy = (mu1 * y / ((x - x1)^2 + y^2 + z^2)^(3/2) + mu2 * y / ((x - x2)^2 + y^2 + z^2)^(3/2));
-    ddz = (mu1 * z / ((x - x1)^2 + y^2 + z^2)^(3/2) + mu2 * z / ((x - x2)^2 + y^2 + z^2)^(3/2));
+    % First-order differential equations
+    dx_dt = vx;
+    dy_dt = vy;
+    dz_dt = vz;
+    r1 = sqrt((x + mu)^2 + y^2 + z^2);
+    r2 = sqrt((x - 1 + mu)^2 + y^2 + z^2);
+    dvx_dt = 2*vy + x - (1 - mu) * (x + mu) / r1^3 - mu * (x - 1 + mu) / r2^3;
+    dvy_dt = -2*vx + y - (1 - mu) * y / r1^3 - mu * y / r2^3;
+    dvz_dt = -(1 - mu) * z / r1^3 - mu * z / r2^3;
+
+    % System of equations
+    F = [dx_dt; dy_dt; dz_dt; dvx_dt; dvy_dt; dvz_dt];
+    V = [x; y; z; vx; vy; vz];
 
     % Jacobian matrix
-    J = jacobian([ddx, ddy, ddz], [x, y, z]);
+    J = jacobian(F, V);
 
     % Equilibrium points
     L_points = [L1, 0, 0; L2, 0, 0; L3, 0, 0; L4(1), L4(2), 0; L5(1), L5(2), 0];
@@ -66,7 +75,7 @@ function lagrange_points_and_jacobian()
     % Evaluate the Jacobian at each equilibrium point
     for i = 1:size(L_points, 1)
         L_point = L_points(i, :);
-        J_eval = double(subs(J, {x, y, z}, {L_point(1), L_point(2), L_point(3)}));
+        J_eval = double(subs(J, {x, y, z, vx, vy, vz}, {L_point(1), L_point(2), L_point(3), 0, 0, 0}));
         fprintf('Jacobian at L%d:\n', i);
         disp(J_eval);
         
