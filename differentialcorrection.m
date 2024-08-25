@@ -1,4 +1,4 @@
-% Constants
+
 G = 6.67430e-11;  % Gravitational constant, m^3 kg^-1 s^-2
 M1 = 5.972e24;    % Mass of Earth (kg)
 M2 = 7.348e22;    % Mass of Moon (kg)
