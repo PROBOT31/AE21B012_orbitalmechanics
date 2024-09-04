@@ -1,96 +1,132 @@
-function test(~)
-    % Define the mass ratio
-    mu = 0.012145; 
-
-    % Initial guess for L1
-    equilibrium = [  1.1557 ; 0 ; 0; 0; 0; 0];
-    initial_conditions = equilibrium;
-
-    % Define the linearized system matrix A at L1
-    state = equilibrium;
-    x = state(1);
-    y = state(2);
-    z = state(3);
-    u = state(4);
-    v = state(5);
-    w = state(6);
-
-    % Compute distances d and r
-    d = sqrt((x + mu)^2 + y^2 + z^2);
-    r = sqrt((x - 1 + mu)^2 + y^2 + z^2);
-
-    % Compute the second partial derivatives of the potential function U
-    Uxx = 1 - (1 - mu) / d^3 - mu / r^3 + 3 * (1 - mu) * (x + mu)^2 / d^5 + 3 * mu * (x - 1 + mu)^2 / r^5;
-    Uyy = 1 - (1 - mu) / d^3 - mu / r^3 + 3 * (1 - mu) * y^2 / d^5 + 3 * mu * y^2 / r^5;
-    Uzz = -(1 - mu) / d^3 - mu / r^3 + 3 * (1 - mu) * z^2 / d^5 + 3 * mu * z^2 / r^5;
-    Uxy = 3 * (1 - mu) * (x + mu) * y / d^5 + 3 * mu * (x - 1 + mu) * y / r^5;
-    Uyx = Uxy;
-    Uxz = 3 * (1 - mu) * (x + mu) * z / d^5 + 3 * mu * (x - 1 + mu) * z / r^5;
-    Uzx = Uxz;
-    Uyz =  3 * (1 - mu) * y * z / d^5 + 3 * mu * y * z / r^5;
-    Uzy = Uyz;
-  
-     A = [
-        0, 0, 0, 1, 0, 0;
-        0, 0, 0, 0, 1, 0;
-        0, 0, 0, 0, 0, 1;
-        Uxx, Uxy, Uxz, 0, 2, 0;
-        Uxy, Uyy, Uyz, -2, 0, 0;
-        Uxz, Uyz, Uzz, 0, 0, 0;
-    ]; 
-
-    % Compute eigenvalues and eigenvectors
-    [V, D] = eig(A);
-    eigenvalues = diag(D);
+function lagrange_points_and_jacobian()
+    % Constants
+    G = 6.67430e-11;  % Gravitational constant, m^3 kg^-1 s^-2
+    M1 = 5.972e24;    % Mass of Earth (kg)
+    M2 = 7.348e22;    % Mass of Moon (kg)
+    R = 3844e5;       % Distance between Earth and Moon (m)
     
-    % Identify the purely imaginary eigenvalues and corresponding eigenvectors
-    imag_indices = abs(real(eigenvalues)) < 1e-6 & imag(eigenvalues) ~= 0;
-    relevant_eigenvectors = V(:, imag_indices);
-    relevant_eigenvalues = eigenvalues(imag_indices);
-    
-    % Choose a small perturbation amplitude
-    epsilon = 1e-8;
+    % Standard gravitational parameters
+    mu1 = G * M1;
+    mu2 = G * M2;
+    mu = mu2 / (mu1 + mu2);
 
-    % Perturb initial conditions in the direction of the relevant eigenvectors
-    for i = 1:length(relevant_eigenvalues)
-        omega = abs(imag(relevant_eigenvalues(i)));
-        T_span = [0, 20*pi/omega] ; % Period of the oscillation
+    % Defining the equation for the collinear Lagrange points
+    lagrange_eq = @(x) (1 - mu) * (x + mu) ./ abs(x + mu).^3 + mu * (x - 1 + mu) ./ abs(x - 1 + mu).^3 - x;
 
-        perturbed_initial_conditions = initial_conditions + epsilon * imag(relevant_eigenvectors(:, i));
+    % Solve for L1, L2, and L3 with initial guesses
+    L1 = fsolve(lagrange_eq, 0.5);
+    L2 = fsolve(lagrange_eq, 1.5);
+    L3 = fsolve(lagrange_eq, -1);
+
+    % Equations for L4 and L5 (equilateral points)
+    lagrange_eq4_5 = @(xy) [
+        (1 - mu) * (xy(1) + mu) ./ sqrt((xy(1) + mu).^2 + xy(2).^2).^3 + ...
+        mu * (xy(1) - 1 + mu) ./ sqrt((xy(1) - 1 + mu).^2 + xy(2).^2).^3 - xy(1);
+        (1 - mu) * xy(2) ./ sqrt((xy(1) + mu).^2 + xy(2).^2).^3 + ...
+        mu * xy(2) ./ sqrt((xy(1) - 1 + mu).^2 + xy(2).^2).^3 - xy(2)
+    ];
+
+    % Initial guesses for L4 and L5
+    L4_guess = [0.5, sqrt(3)/2];
+    L5_guess = [0.5, -sqrt(3)/2];
+
+    % Solving L4 and L5
+    L4 = fsolve(lagrange_eq4_5, L4_guess);
+    L5 = fsolve(lagrange_eq4_5, L5_guess);
+
+    % Display the results
+    disp('Lagrange Points (in standardized coordinates):');
+    fprintf('L1: (%.6f, 0.000, 0.000)\n', L1);
+    fprintf('L2: (%.6f, 0.000, 0.000)\n', L2);
+    fprintf('L3: (%.6f, 0.000, 0.000)\n', L3);
+    fprintf('L4: (%.6f, %.6f, 0.000)\n', L4(1), L4(2));
+    fprintf('L5: (%.6f, %.6f, 0.000)\n', L5(1), L5(2));
+
+    % Define the system of equations for the 3-body problem
+    syms x y z vx vy vz
+    % Reference Coordinates
+    x1 = -mu; y1 = 0; z1 = 0; % Earth
+    x2 = 1-mu; y2 = 0; z2 = 0; % Moon (normalized distance R to 1)
+
+    % First-order differential equations
+    dx_dt = vx;
+    dy_dt = vy;
+    dz_dt = vz;
+    r1 = sqrt((x + mu)^2 + y^2 + z^2);
+    r2 = sqrt((x - 1 + mu)^2 + y^2 + z^2);
+    dvx_dt = 2*vy + x - (1 - mu) * (x + mu) / r1^3 - mu * (x - 1 + mu) / r2^3;
+    dvy_dt = -2*vx + y - (1 - mu) * y / r1^3 - mu * y / r2^3;
+    dvz_dt = -(1 - mu) * z / r1^3 - mu * z / r2^3;
+
+    % System of equations
+    F = [dx_dt; dy_dt; dz_dt; dvx_dt; dvy_dt; dvz_dt];
+    V = [x; y; z; vx; vy; vz];
+
+    % Jacobian matrix
+    J = jacobian(F, V);
+
+    % Equilibrium points
+    L_points = [L1, 0, 0; L2, 0, 0; L3, 0, 0; L4(1), L4(2), 0; L5(1), L5(2), 0];
+
+    % Evaluate the Jacobian at each equilibrium point
+    for i = 1:size(L_points, 1)
+        L_point = L_points(i, :);
+        J_eval = double(subs(J, {x, y, z, vx, vy, vz}, {L_point(1), L_point(2), L_point(3), 0, 0, 0}));
+        fprintf('Jacobian at L%d:\n', i);
+        disp(J_eval);
         
-        % Integrate the actual CR3BP system
+        % Compute eigenvalues and eigenvectors
+        [V_eig, D] = eig(J_eval);
+        fprintf('Eigenvalues at L%d:\n', i);
+        disp(diag(D));
+        fprintf('Eigenvectors at L%d:\n', i);
+        disp(V_eig);
+        
+        % Identify purely imaginary eigenvalues
+        imaginary_indices = find(imag(diag(D)) ~= 0 & real(diag(D)) == 0);
+        if isempty(imaginary_indices)
+            fprintf('No purely imaginary eigenvalues at L%d.\n', i);
+            continue;
+        end
+       
+        center_eigenvectors = V_eig(:, imaginary_indices);
+        
+        % Initial condition near the Lagrange point
+        init_cond = [L_point, 0, 0, 0] + 1e-6 * real(center_eigenvectors(:, 1))';
+        
+        % Integrate the system for a longer period
         options = odeset('RelTol', 1e-9, 'AbsTol', 1e-9);
-        [~, state] = ode78(@(t, state) cr3bp_ode(t, state, mu), T_span, perturbed_initial_conditions, options);
-
+        [t, sol] = ode45(@(t, state) three_body_eqns(t, state, mu), [0, 100], init_cond, options);
         
-        % Plot the results
+        % Plot the periodic orbit
         figure;
-        plot3(state(:, 1), state(:, 2), state(:, 3));
-        xlabel('x');
-        ylabel('y');
-        zlabel('z');
-        title(['Perturbed Trajectory (Eigenvector ' num2str(i) ')']);
+        plot3(sol(:, 1), sol(:, 2), sol(:, 3));
+        title(sprintf('Small Amplitude Periodic Orbit around L%d', i));
+        xlabel('x'); ylabel('y'); zlabel('z');
         grid on;
+        
+        % Check for periodicity
+        if norm(sol(end, 1:3) - sol(1, 1:3)) < 1e-6
+            fprintf('Periodic orbit found around L%d.\n', i);
+        else
+            fprintf('The orbit around L%d may not be perfectly periodic; consider refining the initial conditions.\n', i);
+        end
     end
 end
 
-function dstate_dt = cr3bp_ode(~, state, mu)
-    % Defining the state vector
-    x = state(1);
-    y = state(2);
-    z = state(3);
-    u = state(4);
-    v = state(5);
-    w = state(6);
+function dstate_dt = three_body_eqns(~, state, mu)
+    x = state(1); y = state(2); z = state(3);
+    vx = state(4); vy = state(5); vz = state(6);
     
-    % Inputting d and r relations
-    d = sqrt((x + mu)^2 + y^2 + z^2);
-    r = sqrt((x - 1 + mu)^2 + y^2 + z^2);
-
-    % Inputting governing equations
-    ax = 2*v + x - (1 - mu) / d^3 * (x + mu) - mu / r^3 * (x - 1 + mu);
-    ay = -2*u + y - (1 - mu) / d^3 * y - mu / r^3 * y;
-    az = -(1 - mu) / d^3 * z - mu / r^3 * z;
-
-    dstate_dt = [u; v; w; ax; ay; az];
+    r1 = sqrt((x + mu)^2 + y^2 + z^2);
+    r2 = sqrt((x - 1 + mu)^2 + y^2 + z^2);
+    
+    dx_dt = vx;
+    dy_dt = vy;
+    dz_dt = vz;
+    dvx_dt = 2*vy + x - (1 - mu) * (x + mu) / r1^3 - mu * (x - 1 + mu) / r2^3;
+    dvy_dt = -2*vx + y - (1 - mu) * y / r1^3 - mu * y / r2^3;
+    dvz_dt = -(1 - mu) * z / r1^3 - mu * z / r2^3;
+    
+    dstate_dt = [dx_dt; dy_dt; dz_dt; dvx_dt; dvy_dt; dvz_dt];
 end
