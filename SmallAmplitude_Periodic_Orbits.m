@@ -12,7 +12,7 @@ function test
 
     % Dimensionless units: x and time in units of R and sqrt(R^3 / (G * (M1 + M2)))
     % Calculate L1 position using an iterative method
-    x_L1 = fzero(@(x) (1 - mu) * (x + mu) ./ abs(x + mu).^3 + mu * (x - 1 + mu) ./ abs(x - 1 + mu).^3 - x,- 1.2); %edit the intital guess to check other libration points as well
+    x_L1 = fzero(@(x) (1 - mu) * (x + mu) ./ abs(x + mu).^3 + mu * (x - 1 + mu) ./ abs(x - 1 + mu).^3 - x,0.8); %edit the intital guess to check other libration points as well
     
     % Initial guess for L1
     equilibrium = [x_L1; 0; 0; 0; 0; 0];
