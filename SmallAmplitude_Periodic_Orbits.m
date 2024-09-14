@@ -67,7 +67,7 @@ function test
     relevant_eigenvalues = eigenvalues(imag_indices);
 
     % Choose a small perturbation amplitude
-    epsilon = 1e-10;
+    epsilon = 1e-6;
 
     % Perturb initial conditions in the direction of the relevant eigenvectors
     for i = 1:length(relevant_eigenvalues)
